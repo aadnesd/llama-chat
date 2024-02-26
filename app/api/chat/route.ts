@@ -43,8 +43,12 @@ export async function POST(request: NextRequest) {
 
     const llm = new OpenAI({
       model: (process.env.MODEL as any) ?? "gpt-3.5-turbo",
+<<<<<<< HEAD
       maxTokens: 350,
       temperature:0.05
+=======
+      maxTokens: 512,
+>>>>>>> mongodb
     });
 
     const chatEngine = await createChatEngine(llm);
