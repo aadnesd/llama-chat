@@ -1,21 +1,14 @@
-<<<<<<< HEAD
-import {
-  serviceContextFromDefaults,
-  SimpleDirectoryReader,
-  storageContextFromDefaults,
-  VectorStoreIndex,
-} from "llamaindex";
-
 import * as dotenv from "dotenv";
-
 import {
-  CHUNK_OVERLAP,
-  CHUNK_SIZE,
-  STORAGE_CACHE_DIR,
-  STORAGE_DIR,
-} from "./constants.mjs";
+  MongoDBAtlasVectorSearch,
+  SimpleDirectoryReader,
+  VectorStoreIndex,
+  storageContextFromDefaults,
+  serviceContextFromDefaults,
+} from "llamaindex";
+import { MongoClient } from "mongodb";
+import { STORAGE_DIR, checkRequiredEnvVars, CHUNK_SIZE, CHUNK_OVERLAP, STORAGE_CACHE_DIR } from "./shared.mjs";
 
-// Load environment variables from local .env file
 dotenv.config();
 
 async function getRuntime(func) {
@@ -25,51 +18,12 @@ async function getRuntime(func) {
   return end - start;
 }
 
-async function generateDatasource(serviceContext) {
-  console.log(`Generating storage context...`);
-  // Split documents, create embeddings and store them in the storage context
-  const ms = await getRuntime(async () => {
-    const storageContext = await storageContextFromDefaults({
-      persistDir: STORAGE_CACHE_DIR,
-    });
-    const documents = await new SimpleDirectoryReader().loadData({
-      directoryPath: STORAGE_DIR,
-    });
-    await VectorStoreIndex.fromDocuments(documents, {
-      storageContext,
-      serviceContext,
-    });
-  });
-  console.log(`Storage context successfully generated in ${ms / 1000}s.`);
-}
+async function generateDatasourceMongoDB() {
+  const mongoUri = process.env.MONGO_URI;
+  const databaseName = process.env.MONGODB_DATABASE;
+  const vectorCollectionName = process.env.MONGODB_VECTORS;
+  const indexName = process.env.MONGODB_VECTOR_INDEX;
 
-(async () => {
-  const serviceContext = serviceContextFromDefaults({
-    chunkSize: CHUNK_SIZE,
-    chunkOverlap: CHUNK_OVERLAP,
-  });
-
-  await generateDatasource(serviceContext);
-=======
-/* eslint-disable turbo/no-undeclared-env-vars */
-import * as dotenv from "dotenv";
-import {
-  MongoDBAtlasVectorSearch,
-  SimpleDirectoryReader,
-  VectorStoreIndex,
-  storageContextFromDefaults,
-} from "llamaindex";
-import { MongoClient } from "mongodb";
-import { STORAGE_DIR, checkRequiredEnvVars } from "./shared.mjs";
-
-dotenv.config();
-
-const mongoUri = process.env.MONGO_URI;
-const databaseName = process.env.MONGODB_DATABASE;
-const vectorCollectionName = process.env.MONGODB_VECTORS;
-const indexName = process.env.MONGODB_VECTOR_INDEX;
-
-async function loadAndIndex() {
   // Create a new client and connect to the server
   const client = new MongoClient(mongoUri);
 
@@ -95,9 +49,36 @@ async function loadAndIndex() {
   await client.close();
 }
 
+async function generateDatasourceLocal(serviceContext) {
+  console.log(`Generating storage context...`);
+  // Split documents, create embeddings and store them in the storage context
+  const ms = await getRuntime(async () => {
+    const storageContext = await storageContextFromDefaults({
+      persistDir: STORAGE_CACHE_DIR,
+    });
+    const documents = await new SimpleDirectoryReader().loadData({
+      directoryPath: STORAGE_DIR,
+    });
+    await VectorStoreIndex.fromDocuments(documents, {
+      storageContext,
+      serviceContext,
+    });
+  });
+  console.log(`Storage context successfully generated in ${ms / 1000}s.`);
+}
+
 (async () => {
-  checkRequiredEnvVars();
-  await loadAndIndex();
->>>>>>> mongodb
+  try {
+    // Try MongoDB first
+    checkRequiredEnvVars();
+    await generateDatasourceMongoDB();
+  } catch (error) {
+    console.log("MongoDB not configured, falling back to local storage");
+    const serviceContext = serviceContextFromDefaults({
+      chunkSize: CHUNK_SIZE,
+      chunkOverlap: CHUNK_OVERLAP,
+    });
+    await generateDatasourceLocal(serviceContext);
+  }
   console.log("Finished generating storage.");
 })();
