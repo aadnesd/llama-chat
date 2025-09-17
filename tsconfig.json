@@ -15,18 +15,6 @@
     "incremental": true,
     "plugins": [
       {
-<<<<<<< HEAD
-        "name": "next",
-      },
-    ],
-    "paths": {
-      "@/*": ["./*"],
-    },
-    "forceConsistentCasingInFileNames": true,
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"],
-=======
         "name": "next"
       }
     ],
@@ -37,5 +25,4 @@
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
->>>>>>> mongodb
 }
