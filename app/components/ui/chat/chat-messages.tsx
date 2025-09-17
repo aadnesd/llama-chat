@@ -1,18 +1,10 @@
-"use client";
-
+<<<<<<< HEAD
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import ChatActions from "./chat-actions";
 import ChatMessage from "./chat-message";
-import ChatItem from "./chat-item";
 import { ChatHandler } from "./chat.interface";
-
-export interface Message {
-  id: string;
-  content: string;
-  role: string;
-}
 
 export default function ChatMessages(
   props: Pick<ChatHandler, "messages" | "isLoading" | "reload" | "stop">,
@@ -20,6 +12,31 @@ export default function ChatMessages(
   const scrollableChatContainerRef = useRef<HTMLDivElement>(null);
   const messageLength = props.messages.length;
   const lastMessage = props.messages[messageLength - 1];
+=======
+"use client";
+
+import { useEffect, useRef } from "react";
+import ChatItem from "./chat-item";
+
+export interface Message {
+  id: string;
+  content: string;
+  role: string;
+}
+
+export default function ChatMessages({
+  messages,
+  isLoading,
+  reload,
+  stop,
+}: {
+  messages: Message[];
+  isLoading?: boolean;
+  stop?: () => void;
+  reload?: () => void;
+}) {
+  const scrollableChatContainerRef = useRef<HTMLDivElement>(null);
+>>>>>>> mongodb
 
   const scrollToBottom = () => {
     if (scrollableChatContainerRef.current) {
@@ -28,6 +45,7 @@ export default function ChatMessages(
     }
   };
 
+<<<<<<< HEAD
   const isLastMessageFromAssistant =
     messageLength > 0 && lastMessage?.role !== "user";
   const showReload =
@@ -65,6 +83,21 @@ export default function ChatMessages(
           showReload={showReload}
           showStop={showStop}
         />
+=======
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages.length]);
+
+  return (
+    <div className="w-full max-w-5xl p-4 bg-white rounded-xl shadow-xl">
+      <div
+        className="flex flex-col gap-5 divide-y h-[50vh] overflow-auto"
+        ref={scrollableChatContainerRef}
+      >
+        {messages.map((m: Message) => (
+          <ChatItem key={m.id} {...m} />
+        ))}
+>>>>>>> mongodb
       </div>
     </div>
   );
